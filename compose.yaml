@@ -1,0 +1,40 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./python-backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./python-backend:/app
+    environment:
+      - PYTHONPATH=/app
+    command: poetry run uvicorn localmart_backend.main:app --host 0.0.0.0 --reload
+    depends_on:
+      - pocketbase
+
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:latest
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./volumes/pocketbase_data:/pb_data
+      - ./db/pb_migrations:/pb_migrations
+    restart: unless-stopped
+
+volumes:
+  pocketbase_data: 
