@@ -23,6 +23,12 @@ interface CheckoutDetails {
   store: Store;
 }
 
+interface DeliveryQuote {
+  fee: number;
+  currency: string;
+  estimated_delivery_time: string;
+}
+
 // Mock user data
 const MOCK_ADDRESS = {
   street: "25-20 31st Street",
@@ -35,6 +41,18 @@ const MOCK_ADDRESS = {
 // Mock delivery estimate
 const MOCK_DELIVERY_FEE = 5.99;
 const TAX_RATE = 0.08875; // NYC tax rate
+
+const formatDeliveryTime = (isoTimestamp: string): string => {
+  const date = new Date(isoTimestamp);
+  return date.toLocaleString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true
+  });
+};
 
 export default function Page() {
   const { user, login, signup, logout } = useAuth();
@@ -52,6 +70,9 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [itemsError, setItemsError] = useState<string | null>(null);
   const [checkoutItem, setCheckoutItem] = useState<CheckoutDetails | null>(null);
+  const [deliveryQuote, setDeliveryQuote] = useState<DeliveryQuote | null>(null);
+  const [loadingQuote, setLoadingQuote] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -99,12 +120,42 @@ export default function Page() {
     fetchStoreItems();
   }, [selectedStore]);
 
-  const handleCheckout = (item: StoreItem) => {
+  const handleCheckout = async (item: StoreItem) => {
     if (!selectedStore) return;
+
     setCheckoutItem({
       item,
       store: selectedStore
     });
+
+    // Get delivery quote
+    setLoadingQuote(true);
+    setQuoteError(null);
+    try {
+      const response = await fetch('http://localhost:8000/api/v0/delivery/quote', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          store_id: selectedStore.id,
+          item_id: item.id,
+          delivery_address: MOCK_ADDRESS
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get delivery quote');
+      }
+
+      const quote = await response.json();
+      setDeliveryQuote(quote);
+    } catch (error) {
+      console.error('Delivery quote error:', error);
+      setQuoteError('Failed to get delivery estimate');
+    } finally {
+      setLoadingQuote(false);
+    }
   };
 
   const closeCheckoutModal = () => {
@@ -286,7 +337,15 @@ export default function Page() {
                 </div>
                 <div className="flex justify-between text-black">
                   <span>Delivery Fee</span>
-                  <span>${MOCK_DELIVERY_FEE.toFixed(2)}</span>
+                  {loadingQuote ? (
+                    <span>Calculating...</span>
+                  ) : quoteError ? (
+                    <span className="text-red-500">Error getting quote</span>
+                  ) : deliveryQuote ? (
+                    <span>${(deliveryQuote.fee / 100).toFixed(2)}</span>
+                  ) : (
+                    <span>${MOCK_DELIVERY_FEE.toFixed(2)}</span>
+                  )}
                 </div>
                 <div className="border-t pt-2 font-semibold text-black">
                   <div className="flex justify-between">
@@ -295,12 +354,17 @@ export default function Page() {
                       ${(
                         checkoutItem.item.price + 
                         (checkoutItem.item.price * TAX_RATE) + 
-                        MOCK_DELIVERY_FEE
+                        (deliveryQuote ? deliveryQuote.fee / 100 : MOCK_DELIVERY_FEE)
                       ).toFixed(2)}
                     </span>
                   </div>
                 </div>
               </div>
+              {deliveryQuote && (
+                <div className="mt-4 text-sm text-black">
+                  Estimated delivery: {formatDeliveryTime(deliveryQuote.estimated_delivery_time)}
+                </div>
+              )}
             </div>
 
             <button 

@@ -18,9 +18,10 @@ services:
       context: ./python-backend
       dockerfile: Dockerfile
     environment:
-      - PYTHONPATH=/app
+      - LOCALMART_UBER_DIRECT_CUSTOMER_ID=${LOCALMART_UBER_DIRECT_CUSTOMER_ID}
       - LOCALMART_UBER_DIRECT_CLIENT_ID=${LOCALMART_UBER_DIRECT_CLIENT_ID}
       - LOCALMART_UBER_DIRECT_CLIENT_SECRET=${LOCALMART_UBER_DIRECT_CLIENT_SECRET}
+      - PYTHONPATH=/app
     ports:
       - "8000:8000"
     volumes:
