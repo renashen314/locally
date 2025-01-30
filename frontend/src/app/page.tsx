@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAuth } from './contexts/auth';
 
 interface Store {
   id: string;
@@ -23,15 +24,12 @@ interface CheckoutDetails {
 }
 
 // Mock user data
-const MOCK_USER = {
-  name: "Christopher Walken", // Famous Astoria native
-  address: {
-    street: "25-20 31st Street",
-    unit: "Apt 4F",
-    city: "Astoria",
-    state: "NY",
-    zip: "11102"
-  }
+const MOCK_ADDRESS = {
+  street: "25-20 31st Street",
+  unit: "Apt 4F",
+  city: "Astoria",
+  state: "NY",
+  zip: "11102"
 };
 
 // Mock delivery estimate
@@ -39,6 +37,13 @@ const MOCK_DELIVERY_FEE = 5.99;
 const TAX_RATE = 0.08875; // NYC tax rate
 
 export default function Page() {
+  const { user, login, signup, logout } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isSignup, setIsSignup] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [authError, setAuthError] = useState('');
   const [stores, setStores] = useState<Store[]>([]);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [storeItems, setStoreItems] = useState<StoreItem[]>([]);
@@ -106,10 +111,57 @@ export default function Page() {
     setCheckoutItem(null);
   };
 
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    
+    try {
+      if (isSignup) {
+        await signup(email, password, name);
+      } else {
+        await login(email, password);
+      }
+      setShowAuthModal(false);
+      // Reset form
+      setEmail('');
+      setPassword('');
+      setName('');
+    } catch (error) {
+      console.error('Auth error:', error);
+      if (error instanceof Error) {
+        setAuthError(error.message);
+      } else {
+        setAuthError('Authentication failed. Please try again.');
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center p-8">
       <div className="fixed top-0 left-0 right-0 bg-blue-600 text-white p-4 shadow-md">
-        <h1 className="text-2xl font-bold text-center">localmart</h1>
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <h1 className="text-2xl font-bold">localmart</h1>
+          <div>
+            {user ? (
+              <div className="flex items-center gap-4">
+                <span>Welcome, {user.name}!</span>
+                <button 
+                  onClick={logout}
+                  className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setShowAuthModal(true)}
+                className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+              >
+                Login / Sign Up
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       <h1 className="text-3xl font-bold mb-8 mt-16">Stores</h1>
@@ -203,7 +255,7 @@ export default function Page() {
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Quick Checkout</h2>
-              <button
+              <button 
                 onClick={closeCheckoutModal}
                 className="text-gray-500 hover:text-gray-700"
               >
@@ -214,10 +266,10 @@ export default function Page() {
             <div className="mb-6">
               <h3 className="font-semibold mb-2">Delivery Address</h3>
               <div className="text-black">
-                <p>{MOCK_USER.name}</p>
-                <p>{MOCK_USER.address.street}</p>
-                <p>{MOCK_USER.address.unit}</p>
-                <p>{MOCK_USER.address.city}, {MOCK_USER.address.state} {MOCK_USER.address.zip}</p>
+                <p>{user ? user.name : 'Guest'}</p>
+                <p>{MOCK_ADDRESS.street}</p>
+                <p>{MOCK_ADDRESS.unit}</p>
+                <p>{MOCK_ADDRESS.city}, {MOCK_ADDRESS.state} {MOCK_ADDRESS.zip}</p>
               </div>
             </div>
 
@@ -241,8 +293,8 @@ export default function Page() {
                     <span>Total</span>
                     <span>
                       ${(
-                        checkoutItem.item.price +
-                        (checkoutItem.item.price * TAX_RATE) +
+                        checkoutItem.item.price + 
+                        (checkoutItem.item.price * TAX_RATE) + 
                         MOCK_DELIVERY_FEE
                       ).toFixed(2)}
                     </span>
@@ -251,12 +303,95 @@ export default function Page() {
               </div>
             </div>
 
-            <button
+            <button 
               className="w-full mt-6 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
               onClick={closeCheckoutModal}
             >
               Place Order
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <div className="fixed text-black inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">{isSignup ? 'Sign Up' : 'Login'}</h2>
+              <button 
+                onClick={() => setShowAuthModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAuth} className="space-y-4">
+              {isSignup && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    required
+                  />
+                </div>
+              )}
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  required
+                />
+              </div>
+
+              {authError && (
+                <div className="text-red-500 text-sm">
+                  {authError}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                {isSignup ? 'Sign Up' : 'Login'}
+              </button>
+
+              <div className="text-center text-sm">
+                <button
+                  type="button"
+                  onClick={() => setIsSignup(!isSignup)}
+                  className="text-blue-600 hover:underline"
+                >
+                  {isSignup ? 'Already have an account? Login' : "Don't have an account? Sign Up"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

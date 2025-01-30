@@ -1,10 +1,21 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from pocketbase import PocketBase
 from typing import List, Dict
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 # Initialize PocketBase client
 pb = PocketBase('http://pocketbase:8090')
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class UserSignup(BaseModel):
+    email: str
+    password: str
+    passwordConfirm: str
+    name: str
 
 app = FastAPI(
     title="LocalMart Backend",
@@ -72,6 +83,64 @@ async def list_store_items(store_id: str):
         raise HTTPException(
             status_code=500,
             detail=f"Issue fetching store items: {str(e)}"
+        )
+
+### AUTH ROUTES
+
+@app.post("/api/v0/auth/signup", response_model=Dict)
+async def signup(user: UserSignup):
+    """Create a new user account"""
+    try:
+        # Create user record
+        record = pb.collection('users').create({
+            'email': user.email,
+            'password': user.password,
+            'passwordConfirm': user.passwordConfirm,
+            'name': user.name,
+            'username': user.email,  # Use email as username since PocketBase requires it
+        })
+
+        # After creation, authenticate to get the token
+        auth_data = pb.collection('users').auth_with_password(
+            user.email,
+            user.password
+        )
+
+        return {
+            "token": auth_data.token,
+            "user": {
+                "id": auth_data.record.id,
+                "email": auth_data.record.email,
+                "name": auth_data.record.name,
+            }
+        }
+    except Exception as e:
+        print(f"Signup error: {str(e)}")  # Add debug logging
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
+
+@app.post("/api/v0/auth/login", response_model=Dict)
+async def login(user: UserLogin):
+    """Log in an existing user"""
+    try:
+        auth_data = pb.collection('users').auth_with_password(
+            user.email,
+            user.password
+        )
+        return {
+            "token": auth_data.token,
+            "user": {
+                "id": auth_data.record.id,
+                "email": auth_data.record.email,
+                "name": auth_data.record.name,
+            }
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
         )
 
 ### UTILS
