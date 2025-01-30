@@ -17,6 +17,27 @@ interface StoreItem {
   price: number;
 }
 
+interface CheckoutDetails {
+  item: StoreItem;
+  store: Store;
+}
+
+// Mock user data
+const MOCK_USER = {
+  name: "Christopher Walken", // Famous Astoria native
+  address: {
+    street: "25-20 31st Street",
+    unit: "Apt 4F",
+    city: "Astoria",
+    state: "NY",
+    zip: "11102"
+  }
+};
+
+// Mock delivery estimate
+const MOCK_DELIVERY_FEE = 5.99;
+const TAX_RATE = 0.08875; // NYC tax rate
+
 export default function Page() {
   const [stores, setStores] = useState<Store[]>([]);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
@@ -25,6 +46,7 @@ export default function Page() {
   const [loadingItems, setLoadingItems] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [itemsError, setItemsError] = useState<string | null>(null);
+  const [checkoutItem, setCheckoutItem] = useState<CheckoutDetails | null>(null);
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -71,6 +93,18 @@ export default function Page() {
 
     fetchStoreItems();
   }, [selectedStore]);
+
+  const handleCheckout = (item: StoreItem) => {
+    if (!selectedStore) return;
+    setCheckoutItem({
+      item,
+      store: selectedStore
+    });
+  };
+
+  const closeCheckoutModal = () => {
+    setCheckoutItem(null);
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center p-8">
@@ -147,7 +181,8 @@ export default function Page() {
                   {storeItems.map((item) => (
                     <li 
                       key={item.id}
-                      className="bg-white text-black shadow rounded-lg p-4"
+                      className="bg-white text-black shadow rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                      onClick={() => handleCheckout(item)}
                     >
                       <div className="flex items-center justify-between">
                         <h3 className="text-lg font-medium">{item.name}</h3>
@@ -161,6 +196,70 @@ export default function Page() {
           )}
         </div>
       </div>
+
+      {/* Checkout Modal */}
+      {checkoutItem && (
+        <div className="fixed inset-0 text-black bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Quick Checkout</h2>
+              <button
+                onClick={closeCheckoutModal}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <h3 className="font-semibold mb-2">Delivery Address</h3>
+              <div className="text-black">
+                <p>{MOCK_USER.name}</p>
+                <p>{MOCK_USER.address.street}</p>
+                <p>{MOCK_USER.address.unit}</p>
+                <p>{MOCK_USER.address.city}, {MOCK_USER.address.state} {MOCK_USER.address.zip}</p>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <h3 className="font-semibold mb-2">Order Summary</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between text-black">
+                  <span>{checkoutItem.item.name}</span>
+                  <span>${checkoutItem.item.price.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-black">
+                  <span>Tax ({(TAX_RATE * 100).toFixed(3)}%)</span>
+                  <span>${(checkoutItem.item.price * TAX_RATE).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-black">
+                  <span>Delivery Fee</span>
+                  <span>${MOCK_DELIVERY_FEE.toFixed(2)}</span>
+                </div>
+                <div className="border-t pt-2 font-semibold text-black">
+                  <div className="flex justify-between">
+                    <span>Total</span>
+                    <span>
+                      ${(
+                        checkoutItem.item.price +
+                        (checkoutItem.item.price * TAX_RATE) +
+                        MOCK_DELIVERY_FEE
+                      ).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              className="w-full mt-6 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+              onClick={closeCheckoutModal}
+            >
+              Place Order
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
