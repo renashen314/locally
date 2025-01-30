@@ -54,12 +54,43 @@ async def list_stores():
             detail="Issue fetching stores"
         )
 
+@app.get("/api/v0/stores/{store_id}/items", response_model=List[Dict])
+async def list_store_items(store_id: str):
+    """List all items for a specific store"""
+    try:
+        # Get all records from the store_items collection for this store
+        items = pb.collection('store_items').get_list(
+            1, 50,
+            query_params={
+                "filter": f'store = "{store_id}"'
+            }
+        )
+
+        # Convert Record objects to simplified dictionaries
+        return [serialize_store_item(item) for item in items.items]
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Issue fetching store items: {str(e)}"
+        )
 
 ### UTILS
 
 def serialize_store(store) -> Dict:
-    """Extract id and name from a store record"""
+    """Extract store fields from a store record"""
     return {
         "id": store.id,
-        "name": store.name
+        "name": store.name,
+        "street_1": store.street_1,
+        "street_2": store.street_2,
+        "city": store.city,
+        "state": store.state
+    }
+
+def serialize_store_item(item) -> Dict:
+    """Extract item fields from a store item record"""
+    return {
+        "id": item.id,
+        "name": item.name,
+        "price": item.price
     }
