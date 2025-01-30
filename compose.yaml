@@ -17,12 +17,14 @@ services:
     build:
       context: ./python-backend
       dockerfile: Dockerfile
+    environment:
+      - PYTHONPATH=/app
+      - LOCALMART_UBER_DIRECT_CLIENT_ID=${LOCALMART_UBER_DIRECT_CLIENT_ID}
+      - LOCALMART_UBER_DIRECT_CLIENT_SECRET=${LOCALMART_UBER_DIRECT_CLIENT_SECRET}
     ports:
       - "8000:8000"
     volumes:
       - ./python-backend:/app
-    environment:
-      - PYTHONPATH=/app
     command: poetry run uvicorn localmart_backend.main:app --host 0.0.0.0 --reload
     depends_on:
       - pocketbase

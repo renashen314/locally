@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pocketbase import PocketBase
 from typing import List, Dict
+from fastapi.middleware.cors import CORSMiddleware
 
 # Initialize PocketBase client
 pb = PocketBase('http://pocketbase:8090')
@@ -9,6 +10,15 @@ app = FastAPI(
     title="LocalMart Backend",
     description="Backend API for LocalMart application",
     version="0.1.0"
+)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.on_event("startup")
