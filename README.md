@@ -10,7 +10,7 @@ Docker, Docker Compose
 
 To start the next.js frontend, the Python backend, and the database, run:
 ```bash
-docker compose up -d
+docker compose --build up
 ```
 
 To clear the database

@@ -9,6 +9,8 @@ packages = [{include = "localmart_backend"}]
 python = "^3.9"
 fastapi = "^0.115.6"
 uvicorn = {extras = ["standard"], version = "^0.34.0"}
+pocketbase = "^0.14.0"
+ipdb = "^0.13.13"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
