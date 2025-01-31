@@ -36,5 +36,27 @@ services:
       - ./db/pb_migrations:/pb_migrations
     restart: unless-stopped
 
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    ports:
+      - "7700:7700"
+    volumes:
+      - ./volumes/meilisearch_data:/data.ms
+    restart: unless-stopped
+
+  search:
+    build:
+      context: ./search
+      dockerfile: Dockerfile
+    environment:
+      - PORT=4000
+      - PHX_HOST=localhost
+      - MIX_ENV=prod
+      - SECRET_KEY_BASE=1OhQxOL5gxafD09z/Eb0VNFw+qGInscrD2+oWgfXMsuYEafVFz/Jo+r+Vq4G3cOb
+    ports:
+      - "4000:4000"
+    depends_on:
+      - meilisearch
+
 volumes:
   pocketbase_data: 
