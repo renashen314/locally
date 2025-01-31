@@ -30,7 +30,7 @@ export interface SearchFormProps {
   
 export interface SearchParams {
     itemName: string;
-    latitude?: number;
-    longitude?: number;
-    radius?: number; // in kilometers
-  }
+    userAddress: string;
+    radius: number; // in kilometers
+}
+  

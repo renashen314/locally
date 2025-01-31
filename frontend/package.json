@@ -9,13 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@mapbox/mapbox-gl-geocoder": "^5.0.3",
     "@types/mapbox-gl": "^3.4.1",
     "@types/pg": "^8.11.11",
-    "mapbox-gl": "^3.9.3",
+    "axios": "^1.7.9",
+    "leaflet": "^1.9.4",
+    "mapbox-gl": "^3.9.4",
     "next": "15.1.5",
     "pg": "^8.13.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-leaflet": "^5.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
