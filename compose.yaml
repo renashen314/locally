@@ -49,12 +49,12 @@ services:
       context: ./search
       dockerfile: Dockerfile
     environment:
-      - PORT=4000
+      - PORT=4100
       - PHX_HOST=localhost
       - MIX_ENV=prod
       - SECRET_KEY_BASE=1OhQxOL5gxafD09z/Eb0VNFw+qGInscrD2+oWgfXMsuYEafVFz/Jo+r+Vq4G3cOb
     ports:
-      - "4000:4000"
+      - "4100:4100"
     depends_on:
       - meilisearch
 
