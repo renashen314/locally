@@ -1,3 +1,6 @@
+
+localmart is a platform for local businesses to sell their products and services to local customers.
+
 ## v_0.1.0
 1. enable exact text search for product name in postgreSql
 2. the db folder contains the sql script to create the database and table
@@ -24,3 +27,4 @@ In this version the backend is using postgreSql, you need to set the DATABASE_UR
 ```
 DATABASE_URL=postgresql://username:password@localhost:5432/localmart
 ```
+
