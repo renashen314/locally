@@ -53,6 +53,7 @@ services:
       - PHX_HOST=localhost
       - MIX_ENV=prod
       - SECRET_KEY_BASE=1OhQxOL5gxafD09z/Eb0VNFw+qGInscrD2+oWgfXMsuYEafVFz/Jo+r+Vq4G3cOb
+      - MEILI_HOST=http://meilisearch:7700
     ports:
       - "4100:4100"
     depends_on:
