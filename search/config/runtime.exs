@@ -101,5 +101,5 @@ if config_env() == :prod do
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 
   config :search, :meilisearch,
-    host: System.get_env("MEILI_HOST") || raise "MEILI_HOST is not configured!"
+    host: System.get_env("MEILI_HOST") || raise("MEILI_HOST is not configured!")
 end

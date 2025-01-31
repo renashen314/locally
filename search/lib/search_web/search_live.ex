@@ -25,7 +25,8 @@ defmodule SearchWeb.SearchLive do
   end
 
   def handle_event("load", _params, socket) do
-    {:ok, results} = Search.Meilisearch.load_more(socket.assigns.form["search"], length(socket.assigns.results))
+    {:ok, results} =
+      Search.Meilisearch.load_more(socket.assigns.form["search"], length(socket.assigns.results))
 
     {:noreply,
      socket

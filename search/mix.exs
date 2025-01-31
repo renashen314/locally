@@ -55,7 +55,8 @@ defmodule Search.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      {:req, "~> 0.1"}
+      {:req, "~> 0.1"},
+      {:meilisearch_ex, "~> 1.1.2"}
     ]
   end
 

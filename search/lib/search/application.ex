@@ -13,6 +13,11 @@ defmodule Search.Application do
       {Phoenix.PubSub, name: Search.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: Search.Finch},
+      {Meilisearch,
+       name: :movies,
+       endpoint: Application.get_env(:search, :meilisearch)[:host],
+       key: "id",
+       finch: Search.Finch},
       # Start a worker by calling: Search.Worker.start_link(arg)
       # {Search.Worker, arg},
       # Start to serve requests, typically the last entry
