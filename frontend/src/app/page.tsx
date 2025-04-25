@@ -98,7 +98,7 @@ export default function Home() {
       setSelectedShopId(null);
     } catch (error) {
       console.error("Search error:", error);
-      alert(error.message || 'Failed to perform search. Please try again.');
+      alert(error.message || "Failed to perform search. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -117,17 +117,16 @@ export default function Home() {
   };
 
   return (
-    <main className="p-8">
-      <h1 className="text-2xl font-bold mb-6">Find items locally</h1>
-
-      <div className="grid grid-cols-1 gap-8">
-        {/* Left Column: Search Form and Results List */}
-        <SearchForm onSearch={handleSearch} />
-
+    <main className="p-16">
+      <h1 className="text-2xl font-bold mb-6">Find waht you need, locally</h1>
+      {/* Left Column: Search Form and Results List */}
+      <div className="flex flex-col gap-8">
+      <SearchForm onSearch={handleSearch} />
+        <div className="flex gap-8">
         {isLoading ? (
-          <div className="text-center">Searching...</div>
+          <div className="text-center flex-1">Searching...</div>
         ) : searchResults.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-4 flex-1">
             {searchResults.map((shop) => (
               <div
                 key={shop.id}
@@ -153,13 +152,14 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <div className="text-center text-gray-600">No results found</div>
+          <div className="text-center justify-center items-center text-gray-600 flex-1 bg-white p-4 rounded-lg shadow">No results found</div>
         )}
-      </div>
+        {/* Right Column: Map */}
+        <div className="h-[600px] rounded-lg flex-1">
+          <div ref={mapContainer} className="h-full" />
+        </div>
+        </div>
 
-      {/* Right Column: Map */}
-      <div className="h-[600px] rounded-lg overflow-hidden">
-        <div ref={mapContainer} className="h-full" />
       </div>
     </main>
   );

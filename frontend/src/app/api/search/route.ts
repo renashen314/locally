@@ -3,12 +3,14 @@ import { Pool } from "pg";
 import axios from "axios";
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.DATABASE_CONNECTION_STRING,
 });
 
 async function geocodeAddress(address: string) {
   const apiKey = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${apiKey}`;
+  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+    address
+  )}.json?access_token=${apiKey}`;
 
   try {
     const response = await axios.get(url);
@@ -82,11 +84,13 @@ export async function POST(request: Request) {
       Number(radiusInMeters),
     ]);
 
+    console.log(result.rows);
+
     return NextResponse.json(result.rows);
   } catch (error) {
     console.error("Search error:", error);
     return NextResponse.json(
-      { error: "Failed to perform search" },
+      { error: `Failed to perform search, ${error}` },
       { status: 500 }
     );
   }
